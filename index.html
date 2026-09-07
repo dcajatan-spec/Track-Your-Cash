@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Student Finance</title>
+<meta name="theme-color" content="#1C1B18" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Finance" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#EDEBE3; min-height:100vh; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { display:flex; justify-content:center; padding: 24px 12px; }
+  #root { width:100%; max-width:420px; }
+  .phone-shell { max-width: 380px; margin: 0 auto; background: #F6F5F1; border-radius: 24px; padding: 1.1rem 1rem 1.5rem; color: #1C1B18; }
+  .phone-shell.onboarding { min-height: 420px; display:flex; align-items:center; justify-content:center; }
+  .onboarding-inner { display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding: 2rem 1rem; }
+  .onboarding-title { font-size:20px; font-weight:700; margin:6px 0 0; }
+  .onboarding-sub { font-size:13px; color:#6B6857; margin:0 0 10px; }
+  .onboarding-input { width:100%; border:1px solid #E0DDD0; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; text-align:center; }
+  .onboarding-btn { margin-top:12px; width:100%; background:#1C1B18; color:#F6F5F1; border:none; border-radius:10px; padding:11px; font-size:14px; font-weight:600; cursor:pointer; }
+  .onboarding-btn:hover { opacity:0.9; }
+
+  .top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .top-bar .hi { font-size:15px; font-weight:600; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:#E4E1D8; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#6B6857; flex-shrink:0; }
+
+  .hero { background:#1C1B18; color:#F6F5F1; border-radius:16px; padding:1.15rem 1.25rem; margin-bottom:12px; }
+  .hero-label { font-size:12px; color:#B8B5A8; margin:0 0 4px; }
+  .hero-value { font-size:28px; font-weight:700; margin:0 0 6px; letter-spacing:-0.5px; }
+  .hero-value.negative { color:#E8A0A0; }
+  .hero-formula { font-size:11px; color:#8C8A7D; margin:0; }
+
+  .rate-row { display:flex; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #34322C; }
+  .rate-row label { font-size:11px; color:#B8B5A8; flex-shrink:0; }
+  .rate-row input[type=range] { flex:1; accent-color:#D0CBB4; }
+  .rate-row .rate-val { font-size:12px; font-weight:600; min-width:32px; text-align:right; }
+
+  .card { background:#FFFFFF; border:1px solid #E7E4DA; border-radius:14px; padding:1rem 1.1rem; margin-bottom:12px; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .card-title { display:flex; align-items:center; gap:7px; font-size:14px; font-weight:600; }
+  .card-total { font-size:14px; color:#6B6857; font-weight:600; }
+  .card-body { display:flex; flex-direction:column; gap:2px; }
+
+  .entry-row { display:flex; align-items:center; gap:6px; padding:7px 0; border-bottom:1px solid #F1EFE7; font-size:13px; }
+  .entry-row:last-child { border-bottom:none; }
+  .entry-note { flex:1; color:#4A4838; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .entry-amount { color:#1C1B18; font-weight:500; flex-shrink:0; }
+  .icon-btn { background:none; border:none; padding:4px; cursor:pointer; color:#B0AD9F; font-size:13px; flex-shrink:0; }
+  .icon-btn:hover { color:#C0533B; }
+
+  .empty-hint { font-size:12px; color:#A6A392; padding:6px 0; }
+
+  .add-toggle { width:100%; margin-top:8px; background:none; border:1px dashed #D6D3C6; border-radius:10px; padding:8px; font-size:12px; font-weight:600; color:#6B6857; cursor:pointer; }
+  .add-toggle:hover { background:#FAF9F5; }
+
+  .add-form { margin-top:10px; display:flex; flex-direction:column; gap:8px; background:#FAF9F5; border-radius:10px; padding:10px; }
+  .add-form-row { display:flex; gap:6px; }
+  .add-select, .add-amount, .add-note { border:1px solid #E0DDD0; border-radius:8px; padding:7px 8px; font-size:13px; background:#fff; flex:1; min-width:0; }
+  .add-amount { flex:0 0 84px; }
+  .add-btn, .cancel-btn { border:none; border-radius:8px; width:34px; flex-shrink:0; cursor:pointer; font-size:13px; }
+  .add-btn { color:#fff; }
+  .cancel-btn { background:#EFEDE5; color:#6B6857; }
+  .field-error { color:#C0392B; font-size:11px; margin:4px 0 0; }
+
+  .savings-card { display:flex; align-items:center; justify-content:space-between; }
+  .savings-left { display:flex; align-items:center; gap:8px; }
+  .savings-left span:last-child { font-size:14px; font-weight:600; }
+  .savings-right { text-align:right; }
+  .savings-right .amt { font-size:16px; font-weight:700; margin:0; }
+  .savings-right .sub { font-size:11px; color:#A6A392; margin:0; }
+
+  .chart-legend { display:flex; flex-wrap:wrap; gap:10px 14px; margin-bottom:10px; }
+  .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#6B6857; font-weight:500; }
+  .legend-swatch { width:8px; height:8px; border-radius:2px; display:inline-block; flex-shrink:0; }
+  .chart-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .chart-scroll svg { display:block; }
+  .chart-detail-panel { margin-top:10px; padding-top:10px; border-top:1px solid #F1EFE7; }
+  .chart-detail-month { font-size:12px; font-weight:700; margin:0 0 6px; }
+  .chart-detail-row { display:flex; justify-content:space-between; font-size:12px; padding:3px 0; color:#4A4838; }
+  .chart-hint { font-size:11px; color:#A6A392; margin:8px 0 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "student-finance-app-state";
+  var idCounter = 1;
+  function nextId() { return idCounter++; }
+
+  var INCOME_TYPES = [
+    { key: "allowance", label: "Allowance" },
+    { key: "side_hustle", label: "Side hustle" },
+    { key: "other", label: "Other" }
+  ];
+  var EXPENSE_TYPES = [
+    { key: "academics", label: "Academics" },
+    { key: "food", label: "Food" },
+    { key: "transport", label: "Transport" },
+    { key: "data_utilities", label: "Data & utilities" }
+  ];
+
+  var CHART_COLORS = {
+    income: "#3E7C5A",
+    expenses: "#C0533B",
+    savings: "#C9A227",
+    freeSpend: "#4A6FA5"
+  };
+
+  var state = {
+    username: null,
+    incomeEntries: [],
+    expenseEntries: [],
+    savingsRate: 10
+  };
+
+  var ui = {
+    showIncomeForm: false,
+    showExpenseForm: false,
+    editingIncomeId: null,
+    editingExpenseId: null,
+    focusedMonthKey: null
+  };
+
+  function fmt(n) {
+    var v = isFinite(n) ? n : 0;
+    return "GHS " + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function typeLabel(types, key) {
+    for (var i = 0; i < types.length; i++) if (types[i].key === key) return types[i].label;
+    return key;
+  }
+
+  function esc(str) {
+    var div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function monthKeyOf(dateStr) {
+    return dateStr && dateStr.length >= 7 ? dateStr.slice(0, 7) : todayStr().slice(0, 7);
+  }
+
+  // ---- persistence ----
+
+  function migrateDates() {
+    var today = todayStr();
+    var changed = false;
+    state.incomeEntries.forEach(function (e) {
+      if (!e.date) { e.date = today; changed = true; }
+    });
+    state.expenseEntries.forEach(function (e) {
+      if (!e.date) { e.date = today; changed = true; }
+    });
+    return changed;
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data.username) state.username = data.username;
+        if (Array.isArray(data.incomeEntries)) state.incomeEntries = data.incomeEntries;
+        if (Array.isArray(data.expenseEntries)) state.expenseEntries = data.expenseEntries;
+        if (typeof data.savingsRate === "number") state.savingsRate = data.savingsRate;
+        var maxId = 0;
+        state.incomeEntries.concat(state.expenseEntries).forEach(function (e) {
+          if (e.id > maxId) maxId = e.id;
+        });
+        idCounter = maxId + 1;
+      }
+    } catch (e) {}
+    var changed = migrateDates();
+    if (changed) save();
+  }
+
+  function save() {
+    if (!state.username) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  // ---- calculations ----
+
+  function totals() {
+    var totalIncome = state.incomeEntries.reduce(function (s, e) { return s + e.amount; }, 0);
+    var totalExpenses = state.expenseEntries.reduce(function (s, e) { return s + e.amount; }, 0);
+    var fixedSavings = totalIncome * (state.savingsRate / 100);
+    var freeSpend = (totalIncome - totalExpenses) - fixedSavings;
+    return { totalIncome: totalIncome, totalExpenses: totalExpenses, fixedSavings: fixedSavings, freeSpend: freeSpend };
+  }
+
+  function lastNMonths(n) {
+    var arr = [];
+    var base = new Date();
+    base.setDate(1);
+    for (var i = n - 1; i >= 0; i--) {
+      var dt = new Date(base.getFullYear(), base.getMonth() - i, 1);
+      var key = dt.getFullYear() + "-" + pad2(dt.getMonth() + 1);
+      var label = dt.toLocaleString(undefined, { month: "short" });
+      arr.push({ key: key, label: label });
+    }
+    return arr;
+  }
+
+  function monthlyTotals() {
+    var months = lastNMonths(6);
+    return months.map(function (m) {
+      var inc = state.incomeEntries
+        .filter(function (e) { return monthKeyOf(e.date) === m.key; })
+        .reduce(function (s, e) { return s + e.amount; }, 0);
+      var exp = state.expenseEntries
+        .filter(function (e) { return monthKeyOf(e.date) === m.key; })
+        .reduce(function (s, e) { return s + e.amount; }, 0);
+      var sav = inc * (state.savingsRate / 100);
+      var free = (inc - exp) - sav;
+      return { key: m.key, label: m.label, income: inc, expenses: exp, savings: sav, freeSpend: free };
+    });
+  }
+
+  // ---- html builders ----
+
+  function optionsHtml(types, selected) {
+    return types.map(function (t) {
+      return '<option value="' + t.key + '"' + (t.key === selected ? " selected" : "") + '>' + esc(t.label) + "</option>";
+    }).join("");
+  }
+
+  function entryFormHtml(formId, types, accent, initial) {
+    var type = initial ? initial.type : types[0].key;
+    var amount = initial ? initial.amount : "";
+    var note = initial ? (initial.note || "") : "";
+    return (
+      '<div class="add-form" data-form="' + formId + '">' +
+        '<div class="add-form-row">' +
+          '<select class="add-select" data-role="type">' + optionsHtml(types, type) + "</select>" +
+          '<input class="add-amount" data-role="amount" type="number" inputmode="decimal" placeholder="Amount" value="' + esc(amount) + '" />' +
+        "</div>" +
+        '<div class="add-form-row">' +
+          '<input class="add-note" data-role="note" type="text" placeholder="Note (optional)" value="' + esc(note) + '" />' +
+          '<button class="add-btn" data-action="submit-' + formId + '" style="background:' + accent + '">\u2713</button>' +
+          '<button class="cancel-btn" data-action="cancel-' + formId + '">\u2715</button>' +
+        "</div>" +
+        '<p class="field-error" data-role="error" style="display:none;"></p>' +
+      "</div>"
+    );
+  }
+
+  function entryRowsHtml(entries, types, section) {
+    if (entries.length === 0) return '<p class="empty-hint">Nothing added yet.</p>';
+    return entries.map(function (e) {
+      if ((section === "income" && ui.editingIncomeId === e.id) || (section === "expense" && ui.editingExpenseId === e.id)) {
+        return entryFormHtml("edit-" + section + "-" + e.id, types, section === "income" ? "#3E7C5A" : "#C0533B", e);
+      }
+      var noteText = typeLabel(types, e.type) + (e.note ? " \u00b7 " + esc(e.note) : "");
+      return (
+        '<div class="entry-row">' +
+          '<span class="entry-note">' + noteText + "</span>" +
+          '<span class="entry-amount">' + fmt(e.amount) + "</span>" +
+          '<button class="icon-btn" data-action="edit-' + section + '" data-id="' + e.id + '" aria-label="Edit entry">\u270e</button>' +
+          '<button class="icon-btn" data-action="delete-' + section + '" data-id="' + e.id + '" aria-label="Delete entry">\ud83d\uddd1</button>' +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function legendItemHtml(color, label) {
+    return '<span class="legend-item"><span class="legend-swatch" style="background:' + color + '"></span>' + esc(label) + "</span>";
+  }
+
+  function detailRowHtml(label, val) {
+    return '<div class="chart-detail-row"><span>' + esc(label) + '</span><span>' + fmt(val) + "</span></div>";
+  }
+
+  function chartCardHtml() {
+    var data = monthlyTotals();
+    var maxVal = 1;
+    data.forEach(function (m) {
+      [m.income, m.expenses, m.savings, Math.abs(m.freeSpend)].forEach(function (v) {
+        if (v > maxVal) maxVal = v;
+      });
+    });
+
+    var groupWidth = 60;
+    var barWidth = 9;
+    var gap = 3;
+    var chartHeight = 110;
+    var labelSpace = 18;
+    var svgWidth = groupWidth * data.length;
+    var svgHeight = chartHeight + labelSpace;
+
+    var groupsSvg = data.map(function (m, i) {
+      var innerWidth = barWidth * 4 + gap * 3;
+      var gx = i * groupWidth + (groupWidth - innerWidth) / 2;
+      var series = [
+        { v: m.income, color: CHART_COLORS.income },
+        { v: m.expenses, color: CHART_COLORS.expenses },
+        { v: m.savings, color: CHART_COLORS.savings },
+        { v: m.freeSpend, color: CHART_COLORS.freeSpend }
+      ];
+      var barsSvg = series.map(function (s, j) {
+        var h = Math.max(2, (Math.abs(s.v) / maxVal) * chartHeight);
+        var x = gx + j * (barWidth + gap);
+        var y = chartHeight - h;
+        var opacity = s.v < 0 ? ' opacity="0.5"' : "";
+        return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barWidth + '" height="' + h.toFixed(1) + '" rx="2" fill="' + s.color + '"' + opacity + " />";
+      }).join("");
+
+      var isFocused = ui.focusedMonthKey === m.key;
+      var bgFill = isFocused ? "rgba(28,27,24,0.06)" : "transparent";
+
+      return (
+        '<g data-action="focus-month" data-month="' + m.key + '" style="cursor:pointer;">' +
+          '<rect x="' + (i * groupWidth) + '" y="0" width="' + groupWidth + '" height="' + chartHeight + '" fill="' + bgFill + '" rx="4" />' +
+          barsSvg +
+          '<text x="' + (i * groupWidth + groupWidth / 2) + '" y="' + (chartHeight + 13) + '" text-anchor="middle" font-size="10" fill="#6B6857" font-family="inherit">' + m.label + "</text>" +
+        "</g>"
+      );
+    }).join("");
+
+    var svg = '<svg viewBox="0 0 ' + svgWidth + " " + svgHeight + '" width="' + svgWidth + '" height="' + svgHeight + '" xmlns="http://www.w3.org/2000/svg">' + groupsSvg + "</svg>";
+
+    var legend =
+      '<div class="chart-legend">' +
+        legendItemHtml(CHART_COLORS.income, "Income") +
+        legendItemHtml(CHART_COLORS.expenses, "Expenses") +
+        legendItemHtml(CHART_COLORS.savings, "Savings") +
+        legendItemHtml(CHART_COLORS.freeSpend, "Free to spend") +
+      "</div>";
+
+    var focused = data.filter(function (m) { return m.key === ui.focusedMonthKey; })[0];
+    var detail = "";
+    if (focused) {
+      detail =
+        '<div class="chart-detail-panel">' +
+          '<p class="chart-detail-month">' + esc(focused.label) + "</p>" +
+          detailRowHtml("Income", focused.income) +
+          detailRowHtml("Expenses", focused.expenses) +
+          detailRowHtml("Savings", focused.savings) +
+          detailRowHtml("Free to spend", focused.freeSpend) +
+        "</div>";
+    }
+
+    return (
+      '<div class="card">' +
+        '<div class="card-header">' +
+          '<div class="card-title"><span>\ud83d\udcca</span><span>Last 6 months</span></div>' +
+        "</div>" +
+        legend +
+        '<div class="chart-scroll">' + svg + "</div>" +
+        (focused ? detail : '<p class="chart-hint">Tap a month to see the breakdown.</p>') +
+      "</div>"
+    );
+  }
+
+  // ---- render ----
+
+  function render() {
+    var root = document.getElementById("root");
+
+    if (!state.username) {
+      root.innerHTML =
+        '<div class="phone-shell onboarding">' +
+          '<div class="onboarding-inner">' +
+            '<div style="font-size:30px;">\ud83d\udc37</div>' +
+            '<h1 class="onboarding-title">Welcome</h1>' +
+            '<p class="onboarding-sub">What should we call you?</p>' +
+            '<input id="name-input" class="onboarding-input" type="text" placeholder="Your name" autofocus />' +
+            '<p class="field-error" id="name-error" style="display:none;"></p>' +
+            '<button class="onboarding-btn" id="start-btn">Get started</button>' +
+          "</div>" +
+        "</div>";
+
+      var input = document.getElementById("name-input");
+      var errorEl = document.getElementById("name-error");
+      function submitName() {
+        var val = input.value.trim();
+        if (!val) {
+          errorEl.textContent = "Enter a name to continue";
+          errorEl.style.display = "block";
+          return;
+        }
+        state.username = val;
+        save();
+        render();
+      }
+      document.getElementById("start-btn").addEventListener("click", submitName);
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") submitName(); });
+      input.focus();
+      return;
+    }
+
+    var t = totals();
+    var initials = state.username.split(" ").map(function (p) { return p[0]; }).join("").slice(0, 2).toUpperCase();
+
+    var html =
+      '<div class="phone-shell">' +
+        '<div class="top-bar">' +
+          '<span class="hi">Hi, ' + esc(state.username) + "</span>" +
+          '<div class="avatar">' + esc(initials) + "</div>" +
+        "</div>" +
+
+        '<div class="hero">' +
+          '<p class="hero-label">Free to spend</p>' +
+          '<p class="hero-value' + (t.freeSpend < 0 ? " negative" : "") + '">' + fmt(t.freeSpend) + "</p>" +
+          '<p class="hero-formula">(Income \u2212 expenses) \u2212 fixed savings</p>' +
+          '<div class="rate-row">' +
+            '<label for="rate">Savings rate</label>' +
+            '<input id="rate" type="range" min="0" max="50" step="1" value="' + state.savingsRate + '" />' +
+            '<span class="rate-val">' + state.savingsRate + "%</span>" +
+          "</div>" +
+        "</div>" +
+
+        chartCardHtml() +
+
+        '<div class="card">' +
+          '<div class="card-header">' +
+            '<div class="card-title"><span>\ud83d\udcb0</span><span>Income</span></div>' +
+            '<span class="card-total">' + fmt(t.totalIncome) + "</span>" +
+          "</div>" +
+          '<div class="card-body">' + entryRowsHtml(state.incomeEntries, INCOME_TYPES, "income") + "</div>" +
+          (ui.showIncomeForm
+            ? entryFormHtml("add-income", INCOME_TYPES, "#3E7C5A", null)
+            : '<button class="add-toggle" data-action="show-income-form">+ Add income</button>') +
+        "</div>" +
+
+        '<div class="card">' +
+          '<div class="card-header">' +
+            '<div class="card-title"><span>\ud83d\udcda</span><span>Expenses</span></div>' +
+            '<span class="card-total">' + fmt(t.totalExpenses) + "</span>" +
+          "</div>" +
+          '<div class="card-body">' + entryRowsHtml(state.expenseEntries, EXPENSE_TYPES, "expense") + "</div>" +
+          (ui.showExpenseForm
+            ? entryFormHtml("add-expense", EXPENSE_TYPES, "#C0533B", null)
+            : '<button class="add-toggle" data-action="show-expense-form">+ Add expense</button>') +
+        "</div>" +
+
+        '<div class="card savings-card">' +
+          '<div class="savings-left"><span>\ud83d\udc37</span><span>Fixed savings</span></div>' +
+          '<div class="savings-right">' +
+            '<p class="amt">' + fmt(t.fixedSavings) + "</p>" +
+            '<p class="sub">' + state.savingsRate + "% of income</p>" +
+          "</div>" +
+        "</div>" +
+      "</div>";
+
+    root.innerHTML = html;
+    attachRateHandler();
+    attachClickHandler();
+  }
+
+  function readForm(formEl, existingDate) {
+    var type = formEl.querySelector('[data-role="type"]').value;
+    var amountRaw = formEl.querySelector('[data-role="amount"]').value;
+    var note = formEl.querySelector('[data-role="note"]').value.trim();
+    var errorEl = formEl.querySelector('[data-role="error"]');
+    var val = parseFloat(amountRaw);
+    if (!amountRaw || isNaN(val) || val <= 0) {
+      errorEl.textContent = "Enter an amount greater than 0";
+      errorEl.style.display = "block";
+      return null;
+    }
+    return { type: type, amount: val, note: note, date: existingDate || todayStr() };
+  }
+
+  // Safe to call on every render: the #rate element is recreated each time
+  // innerHTML is rewritten, so the old node (and its old listener) is gone.
+  function attachRateHandler() {
+    var rateInput = document.getElementById("rate");
+    if (rateInput) {
+      rateInput.addEventListener("input", function () {
+        state.savingsRate = parseInt(rateInput.value, 10);
+        save();
+        render();
+      });
+    }
+  }
+
+  // Must only ever be attached once: #root itself persists across renders
+  // (only its innerHTML is replaced), so re-adding this listener on every
+  // render would stack duplicate handlers and fire actions multiple times.
+  function attachClickHandler() {
+    var root = document.getElementById("root");
+    if (root.getAttribute("data-click-handler-attached") === "1") return;
+    root.setAttribute("data-click-handler-attached", "1");
+
+    root.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      var action = btn.getAttribute("data-action");
+      var id = btn.getAttribute("data-id") ? parseInt(btn.getAttribute("data-id"), 10) : null;
+
+      if (action === "show-income-form") { ui.showIncomeForm = true; render(); return; }
+      if (action === "show-expense-form") { ui.showExpenseForm = true; render(); return; }
+
+      if (action === "cancel-add-income") { ui.showIncomeForm = false; render(); return; }
+      if (action === "cancel-add-expense") { ui.showExpenseForm = false; render(); return; }
+
+      if (action === "submit-add-income") {
+        var form = btn.closest(".add-form");
+        var entry = readForm(form);
+        if (!entry) return;
+        state.incomeEntries.push(Object.assign({ id: nextId() }, entry));
+        ui.showIncomeForm = false;
+        save(); render(); return;
+      }
+      if (action === "submit-add-expense") {
+        var form2 = btn.closest(".add-form");
+        var entry2 = readForm(form2);
+        if (!entry2) return;
+        state.expenseEntries.push(Object.assign({ id: nextId() }, entry2));
+        ui.showExpenseForm = false;
+        save(); render(); return;
+      }
+
+      if (action === "edit-income") { ui.editingIncomeId = id; render(); return; }
+      if (action === "edit-expense") { ui.editingExpenseId = id; render(); return; }
+
+      if (action === "delete-income") {
+        state.incomeEntries = state.incomeEntries.filter(function (e) { return e.id !== id; });
+        save(); render(); return;
+      }
+      if (action === "delete-expense") {
+        state.expenseEntries = state.expenseEntries.filter(function (e) { return e.id !== id; });
+        save(); render(); return;
+      }
+
+      if (action && action.indexOf("cancel-edit-income-") === 0) { ui.editingIncomeId = null; render(); return; }
+      if (action && action.indexOf("cancel-edit-expense-") === 0) { ui.editingExpenseId = null; render(); return; }
+
+      if (action && action.indexOf("submit-edit-income-") === 0) {
+        var editId = parseInt(action.replace("submit-edit-income-", ""), 10);
+        var eform = btn.closest(".add-form");
+        var origIncome = state.incomeEntries.filter(function (e) { return e.id === editId; })[0];
+        var updated = readForm(eform, origIncome && origIncome.date);
+        if (!updated) return;
+        state.incomeEntries = state.incomeEntries.map(function (e) {
+          return e.id === editId ? Object.assign({ id: editId }, updated) : e;
+        });
+        ui.editingIncomeId = null;
+        save(); render(); return;
+      }
+      if (action && action.indexOf("submit-edit-expense-") === 0) {
+        var editId2 = parseInt(action.replace("submit-edit-expense-", ""), 10);
+        var eform2 = btn.closest(".add-form");
+        var origExpense = state.expenseEntries.filter(function (e) { return e.id === editId2; })[0];
+        var updated2 = readForm(eform2, origExpense && origExpense.date);
+        if (!updated2) return;
+        state.expenseEntries = state.expenseEntries.map(function (e) {
+          return e.id === editId2 ? Object.assign({ id: editId2 }, updated2) : e;
+        });
+        ui.editingExpenseId = null;
+        save(); render(); return;
+      }
+
+      if (action === "focus-month") {
+        var monthKey = btn.getAttribute("data-month");
+        ui.focusedMonthKey = (ui.focusedMonthKey === monthKey) ? null : monthKey;
+        render(); return;
+      }
+    });
+  }
+
+  load();
+  render();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function (err) {
+        console.warn("Service worker registration failed:", err);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
