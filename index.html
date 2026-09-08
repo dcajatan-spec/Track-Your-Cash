@@ -39,6 +39,7 @@
   .rate-row label { font-size:11px; color:#B8B5A8; flex-shrink:0; }
   .rate-row input[type=range] { flex:1; accent-color:#D0CBB4; }
   .rate-row .rate-val { font-size:12px; font-weight:600; min-width:32px; text-align:right; }
+  .rate-row.no-border { border-top:none; padding-top:0; margin-top:4px; }
 
   .card { background:#FFFFFF; border:1px solid #E7E4DA; border-radius:14px; padding:1rem 1.1rem; margin-bottom:12px; }
   .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
@@ -119,7 +120,8 @@
     username: null,
     incomeEntries: [],
     expenseEntries: [],
-    savingsRate: 10
+    savingsRate: 10,
+    investRate: 25
   };
 
   var ui = {
@@ -180,6 +182,7 @@
         if (Array.isArray(data.incomeEntries)) state.incomeEntries = data.incomeEntries;
         if (Array.isArray(data.expenseEntries)) state.expenseEntries = data.expenseEntries;
         if (typeof data.savingsRate === "number") state.savingsRate = data.savingsRate;
+        if (typeof data.investRate === "number") state.investRate = data.investRate;
         var maxId = 0;
         state.incomeEntries.concat(state.expenseEntries).forEach(function (e) {
           if (e.id > maxId) maxId = e.id;
@@ -205,7 +208,8 @@
     var totalExpenses = state.expenseEntries.reduce(function (s, e) { return s + e.amount; }, 0);
     var fixedSavings = totalIncome * (state.savingsRate / 100);
     var freeSpend = (totalIncome - totalExpenses) - fixedSavings;
-    return { totalIncome: totalIncome, totalExpenses: totalExpenses, fixedSavings: fixedSavings, freeSpend: freeSpend };
+    var investAmount = totalIncome * (state.investRate / 100);
+    return { totalIncome: totalIncome, totalExpenses: totalExpenses, fixedSavings: fixedSavings, freeSpend: freeSpend, investAmount: investAmount };
   }
 
   function lastNMonths(n) {
@@ -427,6 +431,11 @@
             '<input id="rate" type="range" min="0" max="50" step="1" value="' + state.savingsRate + '" />' +
             '<span class="rate-val">' + state.savingsRate + "%</span>" +
           "</div>" +
+          '<div class="rate-row no-border">' +
+            '<label for="invest-rate">Invest rate</label>' +
+            '<input id="invest-rate" type="range" min="0" max="100" step="1" value="' + state.investRate + '" />' +
+            '<span class="rate-val">' + state.investRate + "%</span>" +
+          "</div>" +
         "</div>" +
 
         chartCardHtml() +
@@ -460,6 +469,14 @@
             '<p class="sub">' + state.savingsRate + "% of income</p>" +
           "</div>" +
         "</div>" +
+
+        '<div class="card savings-card">' +
+          '<div class="savings-left"><span>\ud83d\udcc8</span><span>Amount to invest</span></div>' +
+          '<div class="savings-right">' +
+            '<p class="amt">' + fmt(t.investAmount) + "</p>" +
+            '<p class="sub">' + state.investRate + "% of income</p>" +
+          "</div>" +
+        "</div>" +
       "</div>";
 
     root.innerHTML = html;
@@ -488,6 +505,14 @@
     if (rateInput) {
       rateInput.addEventListener("input", function () {
         state.savingsRate = parseInt(rateInput.value, 10);
+        save();
+        render();
+      });
+    }
+    var investRateInput = document.getElementById("invest-rate");
+    if (investRateInput) {
+      investRateInput.addEventListener("input", function () {
+        state.investRate = parseInt(investRateInput.value, 10);
         save();
         render();
       });
