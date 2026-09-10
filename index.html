@@ -207,8 +207,8 @@
     var totalIncome = state.incomeEntries.reduce(function (s, e) { return s + e.amount; }, 0);
     var totalExpenses = state.expenseEntries.reduce(function (s, e) { return s + e.amount; }, 0);
     var fixedSavings = totalIncome * (state.savingsRate / 100);
-    var freeSpend = (totalIncome - totalExpenses) - fixedSavings;
     var investAmount = totalIncome * (state.investRate / 100);
+    var freeSpend = (totalIncome - totalExpenses) - fixedSavings - investAmount;
     return { totalIncome: totalIncome, totalExpenses: totalExpenses, fixedSavings: fixedSavings, freeSpend: freeSpend, investAmount: investAmount };
   }
 
@@ -235,7 +235,8 @@
         .filter(function (e) { return monthKeyOf(e.date) === m.key; })
         .reduce(function (s, e) { return s + e.amount; }, 0);
       var sav = inc * (state.savingsRate / 100);
-      var free = (inc - exp) - sav;
+      var inv = inc * (state.investRate / 100);
+      var free = (inc - exp) - sav - inv;
       return { key: m.key, label: m.label, income: inc, expenses: exp, savings: sav, freeSpend: free };
     });
   }
@@ -425,7 +426,7 @@
         '<div class="hero">' +
           '<p class="hero-label">Free to spend</p>' +
           '<p class="hero-value' + (t.freeSpend < 0 ? " negative" : "") + '">' + fmt(t.freeSpend) + "</p>" +
-          '<p class="hero-formula">(Income \u2212 expenses) \u2212 fixed savings</p>' +
+          '<p class="hero-formula">(Income \u2212 expenses) \u2212 fixed savings \u2212 invest</p>' +
           '<div class="rate-row">' +
             '<label for="rate">Savings rate</label>' +
             '<input id="rate" type="range" min="0" max="50" step="1" value="' + state.savingsRate + '" />' +
